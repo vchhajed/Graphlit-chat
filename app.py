@@ -210,6 +210,8 @@ def create_token(secret_key, environment_id, organization_id):
     return token
 
 st.title("Graphlit, Chat with Feed!")
+if st.session_state['token'] is None:
+    st.info("Generate token to get started!")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -217,19 +219,22 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+try:
+    if prompt := st.chat_input("What is up?"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-if prompt := st.chat_input("What is up?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+        with st.chat_message("assistant"):
+            result = prompt_conversation(prompt=prompt, conversation_id=st.session_state["session_conversation_id"])
+            print(result)
+            response = result['data']['promptConversation']['message']['message']
+            print(response)
+            st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+except:
+    st.warning("Generate token to get started!")
 
-    with st.chat_message("assistant"):
-        result = prompt_conversation(prompt=prompt, conversation_id=st.session_state["session_conversation_id"])
-        print(result)
-        response = result['data']['promptConversation']['message']['message']
-        print(response)
-        st.markdown(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
     
     
 with st.sidebar:
